@@ -1,0 +1,361 @@
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  // theme toggle (remembered per browser when storage is available)
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem('jd-theme-v2'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+  var themeBtn = document.getElementById('theme');
+  var lightMQ = window.matchMedia('(prefers-color-scheme: light)');
+  function isSummer() { var t = root.getAttribute('data-theme'); return t ? t === 'light' : lightMQ.matches; }
+  function themeLabel() { themeBtn.textContent = 'theme: ' + (isSummer() ? 'summer' : 'storm'); }
+  themeBtn.addEventListener('click', function () {
+    var next = isSummer() ? 'dark' : 'light';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('jd-theme-v2', next); } catch (e) {}
+    themeLabel();
+  });
+  if (lightMQ.addEventListener) lightMQ.addEventListener('change', themeLabel);
+  themeLabel();
+
+  // lightning around the profile picture
+  (function () {
+    var cv = document.getElementById('fx');
+    if (reduce || !cv || !cv.getContext) return;
+    var ctx = cv.getContext('2d'), frame = cv.parentElement.querySelector('.frame');
+    var W = 0, H = 0, cx = 0, cy = 0, R = 0, dpr = 1, bolts = [], flash = 0, wait = 20, visible = true;
+    var tick = 0, storm = isStorm();
+    function isStorm() { return getComputedStyle(root).getPropertyValue('--storm').trim() === '1'; }
+    function summer(t) {
+      ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 0;
+      var N = 16, i;
+      for (i = 0; i < N; i++) {
+        var th = i / N * 6.2832 + t * 0.18, up = 0.5 - 0.5 * Math.sin(th);
+        var len = (20 + 78 * up) * (0.75 + 0.25 * Math.sin(t * 1.6 + i * 1.7));
+        var hw = 0.075;
+        var ix = cx + Math.cos(th) * R * 0.97, iy = cy + Math.sin(th) * R * 0.97;
+        var ax = cx + Math.cos(th) * (R + len), ay = cy + Math.sin(th) * (R + len);
+        var g = ctx.createLinearGradient(ix, iy, ax, ay);
+        g.addColorStop(0, 'rgba(255,205,60,0.85)'); g.addColorStop(1, 'rgba(255,140,40,0)');
+        ctx.fillStyle = g; ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(th - hw) * R * 0.97, cy + Math.sin(th - hw) * R * 0.97);
+        ctx.lineTo(ax, ay);
+        ctx.lineTo(cx + Math.cos(th + hw) * R * 0.97, cy + Math.sin(th + hw) * R * 0.97);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.shadowColor = 'rgba(255,170,30,0.9)'; ctx.shadowBlur = 8;
+      for (i = 0; i < 16; i++) {
+        var ang = i * 2.4 + t * 0.22, rad = R + 12 + (i * 37) % 56;
+        if (Math.sin(ang) > 0.75) continue;
+        var tw = 0.5 + 0.5 * Math.sin(t * 2.4 + i * 1.3), sz = 1.6 + (i % 3) * 0.9;
+        ctx.globalAlpha = 0.25 + 0.75 * tw; ctx.fillStyle = '#fff7c4';
+        ctx.beginPath(); ctx.arc(cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad, sz, 0, 6.2832); ctx.fill();
+      }
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    }
+    function fit() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var b = cv.getBoundingClientRect(), f = frame.getBoundingClientRect();
+      W = b.width; H = b.height;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      R = f.width / 2; cx = f.left - b.left + R; cy = f.top - b.top + R;
+    }
+    function jag(x0, y0, x1, y1, disp, out) {
+      if (disp < 2.5) { out.push([x1, y1]); return; }
+      var mx = (x0 + x1) / 2 + (Math.random() - 0.5) * disp, my = (y0 + y1) / 2 + (Math.random() - 0.5) * disp;
+      jag(x0, y0, mx, my, disp / 2, out); jag(mx, my, x1, y1, disp / 2, out);
+    }
+    function path(x0, y0, ang, len) {
+      var pts = [[x0, y0]];
+      jag(x0, y0, x0 + Math.cos(ang) * len, y0 + Math.sin(ang) * len, len * 0.38, pts);
+      return pts;
+    }
+    function strike(big) {
+      var a = Math.random() * 6.2832, len = R * (big ? 0.85 + Math.random() * 0.6 : 0.3 + Math.random() * 0.3);
+      var x0 = cx + Math.cos(a) * R * 1.02, y0 = cy + Math.sin(a) * R * 1.02;
+      var main = path(x0, y0, a + (Math.random() - 0.5) * 0.5, len), parts = [main];
+      if (big) {
+        for (var i = 0; i < 2; i++) {
+          var k = main[Math.floor(main.length * (0.25 + Math.random() * 0.5))];
+          parts.push(path(k[0], k[1], a + (Math.random() - 0.5) * 1.6, len * 0.45));
+        }
+        flash = 1;
+        if (window.jdCrackle) window.jdCrackle();
+      }
+      bolts.push({ parts: parts, life: 0, max: big ? 16 : 10, w: big ? 1 : 0.6 });
+    }
+    function step() {
+      requestAnimationFrame(step);
+      if (!visible || document.hidden) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      if (tick++ % 15 === 0) { var now = isStorm(); if (now !== storm) { storm = now; bolts = []; flash = 0; } }
+      if (!storm) { summer(performance.now() / 1000); return; }
+      if (--wait <= 0) {
+        var n = 1 + Math.floor(Math.random() * 3);
+        for (var i = 0; i < n; i++) strike(Math.random() < 0.6);
+        wait = 5 + Math.random() * 20;
+      }
+      if (flash > 0.02) {
+        var g = ctx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 1.34);
+        g.addColorStop(0, 'rgba(120,140,255,' + (flash * 0.5).toFixed(3) + ')');
+        g.addColorStop(1, 'rgba(120,140,255,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.34, 0, 6.2832); ctx.fill();
+        flash *= 0.86;
+      }
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      bolts.forEach(function (b) {
+        b.life++;
+        var t = b.life / b.max, a = (1 - t) * (Math.random() < 0.3 ? 0.45 : 1);
+        b.parts.forEach(function (pts, idx) {
+          ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+          for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+          var k = idx ? 0.6 : 1;
+          ctx.shadowColor = 'rgba(90,110,255,' + a.toFixed(3) + ')'; ctx.shadowBlur = 20;
+          ctx.strokeStyle = 'rgba(70,90,255,' + (a * 0.9).toFixed(3) + ')'; ctx.lineWidth = 7 * k * b.w; ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = 'rgba(255,255,255,' + a.toFixed(3) + ')'; ctx.lineWidth = 2.6 * k * b.w; ctx.stroke();
+        });
+      });
+      bolts = bolts.filter(function (b) { return b.life < b.max; });
+    }
+    fit();
+    window.addEventListener('resize', fit);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    }
+    step();
+  })();
+
+  // theme sound: rain + thunder for the storm, ocean waves + bird chirps for the summer (made live with Web Audio, no files)
+  (function () {
+    var btn = document.getElementById('sound');
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!btn) return;
+    if (!AC) { btn.hidden = true; return; }
+    var enabled = true;
+    try { if (localStorage.getItem('jd-sound') === 'off') enabled = false; } catch (e) {}
+    var ac = null, master, rainG, auroraG, chimeBus, noiseBuf, lastCrackle = 0;
+    function isStorm() { return getComputedStyle(root).getPropertyValue('--storm').trim() === '1'; }
+    function label() { btn.textContent = 'sound: ' + (enabled ? 'on' : 'off'); btn.setAttribute('aria-pressed', enabled ? 'true' : 'false'); }
+    function noiseSrc() { var n = ac.createBufferSource(); n.buffer = noiseBuf; n.loop = true; return n; }
+    function build() {
+      ac = new AC();
+      master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+      var len = ac.sampleRate * 2; noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+      var d = noiseBuf.getChannelData(0); for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+
+      // rain: bright hiss + softer body
+      rainG = ac.createGain(); rainG.gain.value = 0; rainG.connect(master);
+      var n1 = noiseSrc(), hp = ac.createBiquadFilter(), g1 = ac.createGain();
+      hp.type = 'highpass'; hp.frequency.value = 1400; g1.gain.value = 0.35;
+      n1.connect(hp); hp.connect(g1); g1.connect(rainG); n1.start();
+      var n2 = noiseSrc(), bp = ac.createBiquadFilter(), g2 = ac.createGain();
+      bp.type = 'bandpass'; bp.frequency.value = 600; bp.Q.value = 0.6; g2.gain.value = 0.55;
+      n2.connect(bp); bp.connect(g2); g2.connect(rainG); n2.start(0, 0.9);
+
+      // summer: rolling ocean waves + bird chirps
+      auroraG = ac.createGain(); auroraG.gain.value = 0; auroraG.connect(master);
+      var wn = noiseSrc(), wlp = ac.createBiquadFilter(), wg = ac.createGain();
+      wlp.type = 'lowpass'; wlp.frequency.value = 800; wg.gain.value = 0.2;
+      wn.connect(wlp); wlp.connect(wg); wg.connect(auroraG); wn.start(0, 0.4);
+      var foam = ac.createBiquadFilter(), fg = ac.createGain(); foam.type = 'highpass'; foam.frequency.value = 2200; fg.gain.value = 0.05;
+      var fn = noiseSrc(); fn.connect(foam); foam.connect(fg); fg.connect(wg); fn.start(0, 1.1);
+      var swell = ac.createOscillator(), sg = ac.createGain();
+      swell.frequency.value = 0.11; sg.gain.value = 0.17; swell.connect(sg); sg.connect(wg.gain); swell.start();
+      var sg2 = ac.createGain(); sg2.gain.value = 450; swell.connect(sg2); sg2.connect(wlp.frequency);
+      chimeBus = ac.createGain(); chimeBus.connect(auroraG);
+    }
+    function apply() {
+      if (!ac) return;
+      var t = ac.currentTime, storm = isStorm();
+      master.gain.setTargetAtTime(enabled ? 0.8 : 0, t, 0.25);
+      rainG.gain.setTargetAtTime(storm ? 0.12 : 0, t, 0.8);
+      auroraG.gain.setTargetAtTime(storm ? 0 : 0.3, t, 0.8);
+    }
+    function start() {
+      if (!enabled) return;
+      if (!ac) build();
+      if (ac.state === 'suspended') ac.resume();
+      apply();
+    }
+    function live() { return ac && enabled && !document.hidden && ac.state === 'running'; }
+    function thunder() {
+      if (!live() || !isStorm()) return;
+      var t = ac.currentTime, src = noiseSrc(), lp = ac.createBiquadFilter(), g = ac.createGain();
+      lp.type = 'lowpass'; lp.frequency.setValueAtTime(450, t); lp.frequency.exponentialRampToValueAtTime(60, t + 2.8);
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(2.4, t + 0.18);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 3.4);
+      src.connect(lp); lp.connect(g); g.connect(master); src.start(0, Math.random()); src.stop(t + 3.5);
+    }
+    function crackle() {
+      var now = performance.now();
+      if (!live() || !isStorm() || now - lastCrackle < 1400) return;
+      lastCrackle = now;
+      var t = ac.currentTime, src = noiseSrc(), bp = ac.createBiquadFilter(), g = ac.createGain();
+      bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 0.8;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.18, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+      src.connect(bp); bp.connect(g); g.connect(master); src.start(0, Math.random()); src.stop(t + 0.2);
+    }
+    window.jdCrackle = crackle;
+    function chime() {
+      if (live() && !isStorm()) {
+        var t = ac.currentTime, base = 2600 + Math.random() * 1600, n = 2 + Math.floor(Math.random() * 3), k;
+        for (k = 0; k < n; k++) {
+          var st = t + k * 0.13, o = ac.createOscillator(), g = ac.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(base, st); o.frequency.exponentialRampToValueAtTime(base * 1.45, st + 0.08);
+          g.gain.setValueAtTime(0.0001, st); g.gain.linearRampToValueAtTime(0.05, st + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, st + 0.1);
+          o.connect(g); g.connect(chimeBus); o.start(st); o.stop(st + 0.12);
+        }
+      }
+      setTimeout(chime, 2500 + Math.random() * 4500);
+    }
+    chime();
+
+    // thunder follows each big sky flash by a moment, like the real thing
+    Array.prototype.forEach.call(document.querySelectorAll('.flash'), function (el) {
+      el.addEventListener('animationiteration', function () {
+        var dur = el.classList.contains('f2') ? 13 : 9;
+        setTimeout(thunder, dur * 1000 * 0.07 + 500 + Math.random() * 1200);
+      });
+    });
+
+    // browsers only allow sound after a tap, click or key press
+    function first() {
+      ['pointerdown', 'keydown', 'touchend'].forEach(function (ev) { window.removeEventListener(ev, first, true); });
+      start();
+    }
+    ['pointerdown', 'keydown', 'touchend'].forEach(function (ev) { window.addEventListener(ev, first, true); });
+
+    btn.addEventListener('click', function () {
+      enabled = !enabled;
+      try { localStorage.setItem('jd-sound', enabled ? 'on' : 'off'); } catch (e) {}
+      label();
+      if (enabled) start(); else apply();
+    });
+    if ('MutationObserver' in window) new MutationObserver(apply).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener && window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', apply);
+    document.addEventListener('visibilitychange', function () {
+      if (!ac || !enabled) return;
+      if (document.hidden) ac.suspend(); else ac.resume();
+    });
+    label();
+  })();
+
+  // typing effect
+  var roles = ['BSIT student', 'web developer in the making', 'JavaScript tinkerer', 'XML explorer'];
+  var el = document.getElementById('role');
+  if (!reduce) {
+    var r = 0, c = 0, del = false;
+    (function tick() {
+      var word = roles[r];
+      el.textContent = word.slice(0, c);
+      var wait = del ? 40 : 85;
+      if (!del && c === word.length) { del = true; wait = 1500; }
+      else if (del && c === 0) { del = false; r = (r + 1) % roles.length; wait = 350; }
+      else { c += del ? -1 : 1; }
+      setTimeout(tick, wait);
+    })();
+  }
+
+  // cursor glow
+  if (fine && !reduce) {
+    var glow = document.getElementById('glow');
+    var tx = 0, ty = 0, x = 0, y = 0, started = false;
+    window.addEventListener('pointermove', function (e) {
+      tx = e.clientX; ty = e.clientY;
+      if (!started) { x = tx; y = ty; started = true; glow.classList.add('on'); }
+    });
+    document.addEventListener('pointerleave', function () { glow.classList.remove('on'); started = false; });
+    (function loop() {
+      x += (tx - x) * 0.12; y += (ty - y) * 0.12;
+      glow.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+      requestAnimationFrame(loop);
+    })();
+
+    // card tilt
+    document.querySelectorAll('.tilt').forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var b = card.getBoundingClientRect();
+        var px = (e.clientX - b.left) / b.width - 0.5;
+        var py = (e.clientY - b.top) / b.height - 0.5;
+        card.style.setProperty('--ry', (px * 9).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', (-py * 9).toFixed(2) + 'deg');
+      });
+      card.addEventListener('pointerleave', function () {
+        card.style.setProperty('--rx', '0deg');
+        card.style.setProperty('--ry', '0deg');
+      });
+    });
+  }
+
+  // scroll reveal: hide only what sits below the first screen, then bring it in
+  if (!reduce && 'IntersectionObserver' in window) {
+    var items = document.querySelectorAll('.rv, .card, .chips li');
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          var t = en.target;
+          t.classList.remove('pre'); io.unobserve(t);
+          setTimeout(function () { t.classList.remove('reveal'); t.style.transitionDelay = ''; }, 1000);
+        }
+      });
+    }, { threshold: 0.12 });
+    items.forEach(function (n, i) {
+      var top = n.getBoundingClientRect().top;
+      if (top > window.innerHeight) {
+        n.classList.add('reveal', 'pre');
+        n.style.transitionDelay = (n.matches('.card, .chips li') ? (i % 3) * 90 : 0) + 'ms';
+        io.observe(n);
+      }
+    });
+  }
+})();
+
+// Contact form: send to Formspree without leaving the page
+(function () {
+  var form = document.getElementById('contact-form');
+  if (!form) return;
+  var status = document.getElementById('form-status');
+  var btn = form.querySelector('button[type="submit"]');
+  var EMAIL = 'joshuadimasaca098@gmail.com';
+  var endpoint = form.getAttribute('action') || '';
+  var configured = /^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/.test(endpoint) && endpoint.indexOf('YOUR_FORM_ID') === -1;
+
+  function say(msg, cls) { status.className = 'form-status' + (cls ? ' ' + cls : ''); status.textContent = msg; }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+    if (fd.get('_gotcha')) return; // bot filled the hidden field
+
+    if (!configured) {
+      // Formspree ID not set yet: fall back to the visitor's email app
+      var subject = 'Portfolio message from ' + (fd.get('name') || 'a visitor');
+      var text = (fd.get('message') || '') + '\n\n' + (fd.get('name') || '') + '\n' + (fd.get('email') || '');
+      say('Opening your email app to send this message.', 'ok');
+      window.location.href = 'mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text);
+      return;
+    }
+
+    btn.disabled = true; say('Sending...');
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 15000) : null;
+    fetch(endpoint, { method: 'POST', body: fd, headers: { 'Accept': 'application/json' }, signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (r.ok) { form.reset(); say('Thanks! Your message was sent.', 'ok'); return; }
+          var msg = (d.errors && d.errors.map(function (x) { return x.message; }).join(', ')) || d.error || 'Something went wrong.';
+          throw new Error(msg);
+        });
+      })
+      .catch(function (err) {
+        var msg = err && err.name === 'AbortError' ? 'The request timed out.' : (err && err.message) || 'Could not send.';
+        if (/failed to fetch|networkerror|load failed/i.test(msg)) msg = 'Network problem.';
+        say(msg + ' Please try again or email me at ' + EMAIL + '.', 'err');
+      })
+      .then(function () { if (timer) clearTimeout(timer); btn.disabled = false; });
+  });
+})();
