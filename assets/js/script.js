@@ -378,45 +378,121 @@
   }
 })();
 
-// Contact form: send to Formspree without leaving the page
+// Contact form: sent in the background so it works for every visitor, with no email app
 (function () {
   var form = document.getElementById('contact-form');
   if (!form) return;
+
   var status = document.getElementById('form-status');
   var btn = form.querySelector('button[type="submit"]');
   var EMAIL = 'joshuadimasaca098@gmail.com';
-  var endpoint = form.getAttribute('action') || '';
-  var configured = /^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/.test(endpoint) && endpoint.indexOf('YOUR_FORM_ID') === -1;
+  var LABEL = btn ? btn.textContent : 'Send message';
+  var sending = false;
 
-  function say(msg, cls) { status.className = 'form-status' + (cls ? ' ' + cls : ''); status.textContent = msg; }
+  // The form's action decides who delivers the message:
+  //   https://formsubmit.co/<email>        -> FormSubmit, no account needed
+  //   https://formspree.io/f/<form id>    -> Formspree, if you prefer it
+  var action = (form.getAttribute('action') || '').trim();
+  var endpoint = '';
+  if (/^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/.test(action)) {
+    endpoint = action;
+  } else if (/^https:\/\/formsubmit\.co\/(?!ajax\/)[^\/?#]+$/.test(action)) {
+    endpoint = action.replace('formsubmit.co/', 'formsubmit.co/ajax/');
+  }
+
+  function say(msg, cls) {
+    status.className = 'form-status' + (cls ? ' ' + cls : '');
+    status.textContent = msg;
+  }
+
+  function value(name) {
+    var field = form.elements[name];
+    return field ? String(field.value || '').replace(/^\s+|\s+$/g, '') : '';
+  }
+
+  function problem(body) {
+    if (!body) return '';
+    if (body.errors && body.errors.length) {
+      return body.errors.map(function (err) { return err.message; }).join(', ');
+    }
+    return body.message || body.error || '';
+  }
+
+  form.addEventListener('input', function () {
+    if (status.className.indexOf('err') !== -1) say('');
+  });
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var fd = new FormData(form);
-    if (fd.get('_gotcha')) return; // bot filled the hidden field
+    if (sending) return;
+    if (value('_honey') || value('_gotcha')) return; // a bot filled the hidden field
 
-    if (!configured) {
-      // Never open the visitor's email app; just report that sending is not set up yet
-      say('The contact form is not set up yet. Please email me at ' + EMAIL + '.', 'err');
+    var name = value('name'), email = value('email'), message = value('message');
+    if (!name || !email || !message) {
+      say('Please fill in your name, email and message.', 'err');
+      var missing = !name ? form.elements.name : !email ? form.elements.email : form.elements.message;
+      if (missing && missing.focus) missing.focus();
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      say('That email address does not look right. Please check it.', 'err');
+      form.elements.email.focus();
+      return;
+    }
+    if (!endpoint) {
+      // Only reached if the form's action was removed; visitors still get a way to reach me
+      say('Sending is not available right now. Please email me at ' + EMAIL + '.', 'err');
       return;
     }
 
-    btn.disabled = true; say('Sending...');
+    var data = new FormData(form);
+    data.set('name', name);
+    data.set('email', email);
+    data.set('message', message);
+
+    sending = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    say('Sending your message...');
+
     var ctrl = window.AbortController ? new AbortController() : null;
-    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 15000) : null;
-    fetch(endpoint, { method: 'POST', body: fd, headers: { 'Accept': 'application/json' }, signal: ctrl ? ctrl.signal : undefined })
-      .then(function (r) {
-        return r.json().catch(function () { return {}; }).then(function (d) {
-          if (r.ok) { form.reset(); say('Thanks! Your message was sent.', 'ok'); return; }
-          var msg = (d.errors && d.errors.map(function (x) { return x.message; }).join(', ')) || d.error || 'Something went wrong.';
-          throw new Error(msg);
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 20000) : null;
+
+    fetch(endpoint, {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' },
+      signal: ctrl ? ctrl.signal : undefined
+    })
+      .then(function (res) {
+        return res.text().then(function (text) {
+          var body = null;
+          try { body = text ? JSON.parse(text) : {}; } catch (err) { body = null; }
+          return { ok: res.ok, body: body };
         });
       })
-      .catch(function (err) {
-        var msg = err && err.name === 'AbortError' ? 'The request timed out.' : (err && err.message) || 'Could not send.';
-        if (/failed to fetch|networkerror|load failed/i.test(msg)) msg = 'Network problem.';
-        say(msg + ' Please try again or email me at ' + EMAIL + '.', 'err');
+      .then(function (out) {
+        // Only a JSON reply from the service counts as success
+        var ok = out.ok && out.body && out.body.success !== false && out.body.success !== 'false';
+        if (!ok) {
+          var why = problem(out.body) || (out.ok ? 'The message service sent an unexpected reply.' : 'The message could not be sent.');
+          throw new Error(why);
+        }
+        form.reset();
+        var first = name.split(/\s+/)[0].slice(0, 40);
+        say('Thanks, ' + first + '! Your message was sent. I will reply to ' + email + ' soon.', 'ok');
       })
-      .then(function () { if (timer) clearTimeout(timer); btn.disabled = false; });
+      .catch(function (err) {
+        var msg = err && err.name === 'AbortError' ? 'The request timed out.' : '';
+        if (!msg && err && /failed to fetch|networkerror|load failed/i.test(err.message || '')) msg = 'There is a network problem.';
+        if (!msg) msg = (err && err.message) || 'Something went wrong.';
+        say(msg + ' Please try again, or email me at ' + EMAIL + '.', 'err');
+      })
+      .then(function () {
+        if (timer) clearTimeout(timer);
+        sending = false;
+        btn.disabled = false;
+        btn.textContent = LABEL;
+      });
   });
 })();
