@@ -1,55 +1,109 @@
 # Joshua P. Dimasaca | Portfolio
 
-Static portfolio built with HTML, CSS and JavaScript.
+[![Live site](https://img.shields.io/badge/live-visit%20the%20site-2ea44f)](https://joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./)
+[![Repository](https://img.shields.io/badge/github-view%20the%20repository-181717)](https://github.com/joshuadimasaca098-cyber/My_Personal_Portfolio.)
+
+Personal portfolio of **Joshua P. Dimasaca**, a 2nd year BSIT student learning web
+development. Built with plain HTML, CSS and JavaScript, and hosted for free on
+GitHub Pages.
+
+| | |
+| --- | --- |
+| **Live site** | [joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./](https://joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./) |
+| **Repository** | [github.com/joshuadimasaca098-cyber/My_Personal_Portfolio.](https://github.com/joshuadimasaca098-cyber/My_Personal_Portfolio.) |
+| **Project 1** | [joshuadimasaca098-cyber.github.io/joshua/](https://joshuadimasaca098-cyber.github.io/joshua/) |
+| **Contact** | [joshuadimasaca098@gmail.com](mailto:joshuadimasaca098@gmail.com) |
+
+## Features
+
+- Summer (sunny) and storm (rainy) themes, switched with a button and remembered
+  on the next visit. Follows the system theme by default.
+- Lightning drawn live on a canvas around the portrait, with rain and a flash.
+- Typing role line, cursor glow, tilting cards and scroll reveal animations.
+- Rain, thunder, ocean waves and bird sounds generated with the Web Audio API
+  (no audio files), with a sound on/off toggle.
+- Contact form that sends a real email without leaving the page.
+- Respects `prefers-reduced-motion` and pauses animations that are off screen.
+
+## Tech
+
+- **HTML5** for structure and semantics
+- **CSS3** for custom properties, grid, flexbox and view transitions
+- **Vanilla JavaScript** for canvas, IntersectionObserver, Web Audio and Fetch
+- **GitHub Pages** for hosting
+- **Formspree** for delivering contact-form messages
 
 ## Structure
 
 ```
-index.html
+index.html                  # the whole page
 assets/
-  css/style.css
-  js/script.js
-  images/portrait.jpg
-.github/workflows/deploy.yml   # auto deploy to GitHub Pages
+  css/style.css             # layout, both themes and animations
+  js/script.js              # theme, canvas, sound, effects and contact form
+  images/portrait.jpg       # portrait used in the hero
+README.md
+LICENSE                     # The Unlicense
 ```
 
-## Auto deploy (GitHub Pages)
+## Run it locally
 
-1. Push this folder to a GitHub repository (branch `main`).
-2. In the repo go to **Settings > Pages** and set **Source** to **GitHub Actions**.
-3. Every push to `main` now deploys automatically. Progress shows in the **Actions** tab.
+Open `index.html` in a browser to see the design, but use a local web server to
+test the contact form: browsers refuse form requests from `file://` pages.
 
-Your site will be at `https://<username>.github.io/<repo>/`.
+```bash
+# from this folder
+python -m http.server 8000
+# then open http://localhost:8000
+```
 
-## Contact form (FormSubmit, no account needed)
+Or use the **Live Server** extension in VS Code.
 
-The form posts to [FormSubmit](https://formsubmit.co) in the background, so visitors
-never leave the page and never need an email app. Everything is configured already:
+## Deploy (GitHub Pages)
+
+The live site is published straight from the `main` branch, so every push goes
+live in about a minute. No workflow file is needed.
+
+1. Open the repository and go to **Settings > Pages**.
+2. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
+3. Choose branch **main** and folder **/ (root)**, then click **Save**.
+
+The site is served at
+<https://joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./>
+
+> The old `.github/workflows/main.yml` file is not used by this setup and fails on
+> every push. It can be deleted from the repository.
+
+## Contact form (Formspree)
+
+The form posts to [Formspree](https://formspree.io) in the background, so
+visitors stay on the page and never need an email app. The endpoint is already
+configured in `index.html`:
 
 ```html
-<form action="https://formsubmit.co/joshuadimasaca098@gmail.com" method="POST">
+<form action="https://formspree.io/f/meaakvbg" method="POST">
 ```
 
-Messages are emailed to the address in the `action`. To send them somewhere else,
-change that address in `index.html`.
+Messages are delivered to the email address set on that Formspree form. To send
+them somewhere else, create a form at <https://formspree.io> and replace the
+`action` with its endpoint, `https://formspree.io/f/<form id>`.
 
-### One-time activation (do this once after deploying)
+The free plan includes 50 submissions per month. Every submission, the
+destination address and the allowed domains are managed in the Formspree
+dashboard.
 
-1. Open the live site and send yourself a test message through the form.
-2. Check `joshuadimasaca098@gmail.com` for a **FormSubmit confirmation email** and
-   click the activation link. (Check the spam folder too.)
-3. Send one more test message to confirm it arrives.
+### If the form reports an error
 
-Submissions made before activation are kept by FormSubmit for 30 days, so no
-visitor messages are lost while the form is inactive. Until the address is
-confirmed, FormSubmit emails an activation link for each new submission.
-
-### Using Formspree instead (optional)
-
-If you would rather use Formspree, create a form at https://formspree.io, then set
-the form's `action` in `index.html` to `https://formspree.io/f/YOUR_FORM_ID`. The
-script detects Formspree URLs automatically and posts there instead.
+- **Form not allowed / 403:** in Formspree open the form, go to **Settings** and
+  add `joshuadimasaca098-cyber.github.io` to the allowed domains (or turn the
+  domain restriction off).
+- **Anything else:** the page always shows the email address as a fallback, so a
+  visitor can still reach you.
 
 The script validates the fields, blocks bots with two hidden honeypot fields,
-disables the button while sending, and shows a clear success or error message
-(always with a direct email fallback).
+disables the button while sending, gives up after 12 seconds, and shows a clear
+success or error message. A FormSubmit endpoint is also supported: if the
+`action` is a `formsubmit.co` URL the script posts there instead.
+
+## License
+
+Released under **The Unlicense**. See [LICENSE](LICENSE).

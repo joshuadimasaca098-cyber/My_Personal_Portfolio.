@@ -390,8 +390,8 @@
   var sending = false;
 
   // The form's action decides who delivers the message:
-  //   https://formsubmit.co/<email>        -> FormSubmit, no account needed
-  //   https://formspree.io/f/<form id>    -> Formspree, if you prefer it
+  //   https://formspree.io/f/<form id>    -> Formspree (the one in use)
+  //   https://formsubmit.co/<email>       -> FormSubmit, as an alternative
   var action = (form.getAttribute('action') || '').trim();
   var endpoint = '';
   if (/^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/.test(action)) {
@@ -455,8 +455,9 @@
     btn.textContent = 'Sending...';
     say('Sending your message...');
 
+    // Formspree normally answers in under a second; 12s leaves room for slow phones
     var ctrl = window.AbortController ? new AbortController() : null;
-    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 20000) : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 12000) : null;
 
     fetch(endpoint, {
       method: 'POST',
@@ -473,7 +474,7 @@
       })
       .then(function (out) {
         // Only a JSON reply from the service counts as success
-        var ok = out.ok && out.body && out.body.success !== false && out.body.success !== 'false';
+        var ok = out.ok && out.body && out.body.success !== false && out.body.success !== 'false' && out.body.ok !== false;
         if (!ok) {
           var why = problem(out.body) || (out.ok ? 'The message service sent an unexpected reply.' : 'The message could not be sent.');
           throw new Error(why);
@@ -483,7 +484,7 @@
         say('Thanks, ' + first + '! Your message was sent. I will reply to ' + email + ' soon.', 'ok');
       })
       .catch(function (err) {
-        var msg = err && err.name === 'AbortError' ? 'The request timed out.' : '';
+        var msg = err && err.name === 'AbortError' ? 'The mail service did not respond in time.' : '';
         if (!msg && err && /failed to fetch|networkerror|load failed/i.test(err.message || '')) msg = 'There is a network problem.';
         if (!msg) msg = (err && err.message) || 'Something went wrong.';
         say(msg + ' Please try again, or email me at ' + EMAIL + '.', 'err');
