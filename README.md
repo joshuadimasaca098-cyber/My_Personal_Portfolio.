@@ -27,4 +27,4 @@ Your site will be at `https://<username>.github.io/<repo>/`.
 2. In `index.html`, replace `YOUR_FORM_ID` in the form's `action` with it.
 3. In Formspree, add your GitHub Pages domain under the form's allowed domains if you enabled that setting.
 
-Until the ID is set, the form opens the visitor's email app instead.
+The form sends the message in the background and shows a success message on the page. It never opens an email app. Until the ID is set, it shows a "not set up yet" message instead.

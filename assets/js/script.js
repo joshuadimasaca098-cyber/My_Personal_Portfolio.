@@ -10,14 +10,34 @@
   var lightMQ = window.matchMedia('(prefers-color-scheme: light)');
   function isSummer() { var t = root.getAttribute('data-theme'); return t ? t === 'light' : lightMQ.matches; }
   function themeLabel() { themeBtn.textContent = 'theme: ' + (isSummer() ? 'summer' : 'storm'); }
-  themeBtn.addEventListener('click', function () {
-    var next = isSummer() ? 'dark' : 'light';
-    root.setAttribute('data-theme', next);
-    try { localStorage.setItem('jd-theme-v2', next); } catch (e) {}
+  var metaTheme = document.querySelector('meta[name="theme-color"]');
+  function syncTheme() {
+    var s = isSummer();
+    root.classList.toggle('theme-summer', s); root.classList.toggle('theme-storm', !s);
+    if (metaTheme) metaTheme.setAttribute('content', s ? '#ffe9b0' : '#0b1020');
     themeLabel();
-  });
-  if (lightMQ.addEventListener) lightMQ.addEventListener('change', themeLabel);
-  themeLabel();
+  }
+  function setTheme(next) {
+    function apply() {
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('jd-theme-v2', next); } catch (e) {}
+      syncTheme();
+    }
+    if (reduce) { apply(); return; }
+    // best case: the browser crossfades snapshots on the compositor
+    if (document.startViewTransition) { document.startViewTransition(apply); return; }
+    // fallback: fade a veil that wears the old sky away
+    var aur = document.querySelector('.aurora'), veil = document.createElement('div');
+    veil.className = 'veil';
+    veil.style.background = getComputedStyle(aur).backgroundImage;
+    document.body.appendChild(veil);
+    apply();
+    requestAnimationFrame(function () { requestAnimationFrame(function () { veil.style.opacity = '0'; }); });
+    setTimeout(function () { if (veil.parentNode) veil.parentNode.removeChild(veil); }, 700);
+  }
+  themeBtn.addEventListener('click', function () { setTheme(isSummer() ? 'dark' : 'light'); });
+  if (lightMQ.addEventListener) lightMQ.addEventListener('change', syncTheme);
+  syncTheme();
 
   // lightning around the profile picture
   (function () {
@@ -26,7 +46,7 @@
     var ctx = cv.getContext('2d'), frame = cv.parentElement.querySelector('.frame');
     var W = 0, H = 0, cx = 0, cy = 0, R = 0, dpr = 1, bolts = [], flash = 0, wait = 20, visible = true;
     var tick = 0, storm = isStorm();
-    function isStorm() { return getComputedStyle(root).getPropertyValue('--storm').trim() === '1'; }
+    function isStorm() { return !isSummer(); }
     function summer(t) {
       ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 0;
       var N = 16, i;
@@ -44,7 +64,7 @@
         ctx.lineTo(cx + Math.cos(th + hw) * R * 0.97, cy + Math.sin(th + hw) * R * 0.97);
         ctx.closePath(); ctx.fill();
       }
-      ctx.shadowColor = 'rgba(255,170,30,0.9)'; ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgba(255,170,30,0.9)'; ctx.shadowBlur = fine ? 8 : 0;
       for (i = 0; i < 16; i++) {
         var ang = i * 2.4 + t * 0.22, rad = R + 12 + (i * 37) % 56;
         if (Math.sin(ang) > 0.75) continue;
@@ -55,7 +75,7 @@
       ctx.globalAlpha = 1; ctx.shadowBlur = 0;
     }
     function fit() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, fine ? 2 : 1.5);
       var b = cv.getBoundingClientRect(), f = frame.getBoundingClientRect();
       W = b.width; H = b.height;
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
@@ -85,13 +105,26 @@
       }
       bolts.push({ parts: parts, life: 0, max: big ? 16 : 10, w: big ? 1 : 0.6 });
     }
-    function step() {
-      requestAnimationFrame(step);
-      if (!visible || document.hidden) return;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      if (tick++ % 15 === 0) { var now = isStorm(); if (now !== storm) { storm = now; bolts = []; flash = 0; } }
-      if (!storm) { summer(performance.now() / 1000); return; }
+    var raf = 0, lastSummer = 0, lastStorm = 0;
+    function loop(ts) {
+      raf = 0;
+      if (!visible || document.hidden) return; // stop completely while off screen
+      raf = requestAnimationFrame(loop);
+      draw(ts || performance.now());
+    }
+    function kick() { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(loop); }
+    function draw(ts) {
+      var now = isStorm();
+      if (now !== storm) { storm = now; bolts = []; flash = 0; }
+      if (!storm) {
+        if (ts - lastSummer < 32) return; // slow scene: 30fps is plenty
+        lastSummer = ts;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+        summer(ts / 1000); return;
+      }
+      if (ts - lastStorm < 14) return; // same speed on 60Hz and 120Hz screens
+      lastStorm = ts;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
       if (--wait <= 0) {
         var n = 1 + Math.floor(Math.random() * 3);
         for (var i = 0; i < n; i++) strike(Math.random() < 0.6);
@@ -112,7 +145,12 @@
           ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
           for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
           var k = idx ? 0.6 : 1;
-          ctx.shadowColor = 'rgba(90,110,255,' + a.toFixed(3) + ')'; ctx.shadowBlur = 20;
+          if (fine) {
+            ctx.shadowColor = 'rgba(90,110,255,' + a.toFixed(3) + ')'; ctx.shadowBlur = 20;
+          } else {
+            // phones: a wide soft stroke imitates the glow without the costly shadow blur
+            ctx.strokeStyle = 'rgba(90,110,255,' + (a * 0.28).toFixed(3) + ')'; ctx.lineWidth = 16 * k * b.w; ctx.stroke();
+          }
           ctx.strokeStyle = 'rgba(70,90,255,' + (a * 0.9).toFixed(3) + ')'; ctx.lineWidth = 7 * k * b.w; ctx.stroke();
           ctx.shadowBlur = 0;
           ctx.strokeStyle = 'rgba(255,255,255,' + a.toFixed(3) + ')'; ctx.lineWidth = 2.6 * k * b.w; ctx.stroke();
@@ -121,11 +159,20 @@
       bolts = bolts.filter(function (b) { return b.life < b.max; });
     }
     fit();
-    window.addEventListener('resize', fit);
+    var rz = 0;
+    window.addEventListener('resize', function () {
+      if (rz) return;
+      rz = requestAnimationFrame(function () {
+        rz = 0;
+        var b = cv.getBoundingClientRect();
+        if (Math.abs(b.width - W) > 1 || Math.abs(b.height - H) > 1) fit(); // ignore phone address-bar resizes
+      });
+    });
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+      new IntersectionObserver(function (e) { visible = e[0].isIntersecting; kick(); }).observe(cv);
     }
-    step();
+    document.addEventListener('visibilitychange', kick);
+    kick();
   })();
 
   // theme sound: rain + thunder for the storm, ocean waves + bird chirps for the summer (made live with Web Audio, no files)
@@ -137,7 +184,7 @@
     var enabled = true;
     try { if (localStorage.getItem('jd-sound') === 'off') enabled = false; } catch (e) {}
     var ac = null, master, rainG, auroraG, chimeBus, noiseBuf, lastCrackle = 0;
-    function isStorm() { return getComputedStyle(root).getPropertyValue('--storm').trim() === '1'; }
+    function isStorm() { return !isSummer(); }
     function label() { btn.textContent = 'sound: ' + (enabled ? 'on' : 'off'); btn.setAttribute('aria-pressed', enabled ? 'true' : 'false'); }
     function noiseSrc() { var n = ac.createBufferSource(); n.buffer = noiseBuf; n.loop = true; return n; }
     function build() {
@@ -244,6 +291,14 @@
     label();
   })();
 
+  // pause endless animations while they are off screen
+  if ('IntersectionObserver' in window) {
+    var offIO = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { e.target.classList.toggle('off', !e.isIntersecting); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.marquee, .portrait'), function (n) { offIO.observe(n); });
+  }
+
   // typing effect
   var roles = ['BSIT student', 'web developer in the making', 'JavaScript tinkerer', 'XML explorer'];
   var el = document.getElementById('role');
@@ -269,22 +324,31 @@
       if (!started) { x = tx; y = ty; started = true; glow.classList.add('on'); }
     });
     document.addEventListener('pointerleave', function () { glow.classList.remove('on'); started = false; });
-    (function loop() {
-      x += (tx - x) * 0.12; y += (ty - y) * 0.12;
-      glow.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-      requestAnimationFrame(loop);
-    })();
+    var graf = 0;
+    function loop() {
+      x += (tx - x) * 0.14; y += (ty - y) * 0.14;
+      glow.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+      graf = (Math.abs(tx - x) > 0.4 || Math.abs(ty - y) > 0.4) ? requestAnimationFrame(loop) : 0; // sleeps when the cursor rests
+    }
+    window.addEventListener('pointermove', function () { if (!graf) graf = requestAnimationFrame(loop); }, { passive: true });
 
     // card tilt
     document.querySelectorAll('.tilt').forEach(function (card) {
+      var traf = 0, last = null;
       card.addEventListener('pointermove', function (e) {
-        var b = card.getBoundingClientRect();
-        var px = (e.clientX - b.left) / b.width - 0.5;
-        var py = (e.clientY - b.top) / b.height - 0.5;
-        card.style.setProperty('--ry', (px * 9).toFixed(2) + 'deg');
-        card.style.setProperty('--rx', (-py * 9).toFixed(2) + 'deg');
-      });
+        last = e;
+        if (traf) return;
+        traf = requestAnimationFrame(function () {
+          traf = 0;
+          var b = card.getBoundingClientRect();
+          var px = (last.clientX - b.left) / b.width - 0.5;
+          var py = (last.clientY - b.top) / b.height - 0.5;
+          card.style.setProperty('--ry', (px * 9).toFixed(2) + 'deg');
+          card.style.setProperty('--rx', (-py * 9).toFixed(2) + 'deg');
+        });
+      }, { passive: true });
       card.addEventListener('pointerleave', function () {
+        if (traf) { cancelAnimationFrame(traf); traf = 0; }
         card.style.setProperty('--rx', '0deg');
         card.style.setProperty('--ry', '0deg');
       });
@@ -332,11 +396,8 @@
     if (fd.get('_gotcha')) return; // bot filled the hidden field
 
     if (!configured) {
-      // Formspree ID not set yet: fall back to the visitor's email app
-      var subject = 'Portfolio message from ' + (fd.get('name') || 'a visitor');
-      var text = (fd.get('message') || '') + '\n\n' + (fd.get('name') || '') + '\n' + (fd.get('email') || '');
-      say('Opening your email app to send this message.', 'ok');
-      window.location.href = 'mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text);
+      // Never open the visitor's email app; just report that sending is not set up yet
+      say('The contact form is not set up yet. Please email me at ' + EMAIL + '.', 'err');
       return;
     }
 
