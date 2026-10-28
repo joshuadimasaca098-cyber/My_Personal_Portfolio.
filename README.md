@@ -1,4 +1,4 @@
-# Joshua Dimasaca | Portfolio
+# Joshua P. Dimasaca | Portfolio
 
 Static portfolio built with HTML, CSS and JavaScript.
 
