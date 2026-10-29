@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="preload" as="image" href="assets/images/portrait.jpg">
 <link rel="stylesheet" href="assets/css/style.css">
-<script>try{var t=localStorage.getItem('jd-theme-v2');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<script>document.documentElement.classList.add('js');try{var t=localStorage.getItem('jd-theme-v2');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="sun"></div></div>
@@ -24,21 +24,31 @@
 <div class="grain" aria-hidden="true"></div>
 <div class="glow" id="glow" aria-hidden="true"></div>
 
+<a class="skip" href="#main">Skip to content</a>
+
 <div class="wrap">
   <header class="nav">
     <a class="mark" href="#top">joshua<b>.</b>dev</a>
-    <nav aria-label="Sections">
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">
+      <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <nav id="site-menu" aria-label="Sections">
+      <a href="#top">Home</a>
       <a href="#about">About</a>
-      <a href="#work">Work</a>
       <a href="#skills">Skills</a>
+      <a href="#work">Projects</a>
+      <a href="#education">Education</a>
       <a href="#contact">Contact</a>
-      <button class="toggle" id="sound" type="button" aria-pressed="true" aria-label="Turn sound on or off">sound: on</button>
-      <button class="toggle" id="theme" type="button" aria-label="Switch light or dark theme">theme</button>
+      <span class="nav-tools">
+        <button class="toggle" id="sound" type="button" aria-pressed="true" aria-label="Turn sound on or off">sound: on</button>
+        <button class="toggle" id="theme" type="button" aria-label="Switch light or dark theme">theme</button>
+      </span>
     </nav>
   </header>
 
-  <main id="top">
-    <div class="hero">
+  <main id="main" tabindex="-1">
+    <section id="home" aria-label="Introduction">
+    <div class="hero" id="top">
       <div class="hero-text">
       <p class="eyebrow">Portfolio / Web Systems and Technologies</p>
       <h1><span>Joshua</span><span class="l2">Dimasaca</span></h1>
@@ -54,6 +64,7 @@
         <figcaption>Joshua Dimasaca<small>BSIT student &middot; WS1</small></figcaption>
       </figure>
     </div>
+    </section>
 
     <div class="marquee" aria-hidden="true">
       <div class="track">
@@ -82,8 +93,20 @@
       </div>
     </section>
 
+    <section id="skills" class="rv">
+      <h2>What I work with</h2>
+      <p class="section-note">The tools I use on coursework and personal builds, plus what I am learning next.</p>
+      <ul class="chips" aria-label="Skills I use">
+        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>DOM manipulation</li><li>XML</li><li>Git and GitHub</li>
+      </ul>
+      <ul class="chips chips-learning" aria-label="Skills I am learning">
+        <li>C++</li><li>Python</li><li>Responsive design</li><li>Accessibility</li>
+      </ul>
+    </section>
+
     <section id="work" class="rv">
-      <h2>Things I've built</h2>
+      <h2>Projects</h2>
+      <p class="section-note">Three builds that show what I have learned so far. Two are live on GitHub Pages.</p>
       <div class="cards">
         <a class="card tilt" href="https://joshuadimasaca098-cyber.github.io/joshua/" target="_blank" rel="noopener">
           <span class="when">Project 1</span>
@@ -98,20 +121,46 @@
           <p>Structured information written in XML with a clear tag hierarchy, my first step into describing data instead of only styling it.</p>
           <ul class="tags"><li>XML</li><li>Markup</li></ul>
         </div>
-        <div class="card tilt">
+        <a class="card tilt" href="https://github.com/joshuadimasaca098-cyber/My_Personal_Portfolio." target="_blank" rel="noopener">
           <span class="when">This page</span>
           <h3>My Portfolio</h3>
           <p>A sunny summer theme and a stormy rain theme, a typing line, a glow that follows the cursor, and cards that tilt.</p>
           <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li></ul>
-        </div>
+          <span class="go">Read the code &rarr;</span>
+        </a>
       </div>
     </section>
 
-    <section id="skills" class="rv">
-      <h2>What I work with</h2>
-      <ul class="chips">
-        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>DOM manipulation</li><li>XML</li><li>Git and GitHub</li>
-      </ul>
+    <section id="education" class="rv">
+      <h2>Education &amp; achievements</h2>
+      <div class="edu">
+        <ol class="timeline">
+          <li>
+            <span class="when">In progress</span>
+            <h3>BS Information Technology</h3>
+            <p>2nd year college student. Coursework in programming, web systems and databases, with a focus on building pages for the web.</p>
+          </li>
+          <li>
+            <span class="when">Completed</span>
+            <h3>Senior High School</h3>
+            <p>Built the foundation in computer basics and early programming before moving on to college.</p>
+          </li>
+          <li>
+            <span class="when">Ongoing</span>
+            <h3>Self-directed learning</h3>
+            <p>Learning HTML, CSS, JavaScript, C++ and Python by reading documentation, following lessons and shipping small projects.</p>
+          </li>
+        </ol>
+        <aside class="panel achievements" aria-labelledby="achievements-title">
+          <h3 id="achievements-title">Achievements</h3>
+          <ul>
+            <li>Designed, built and published this portfolio on GitHub Pages.</li>
+            <li>Built a live message preview page with DOM manipulation.</li>
+            <li>Structured an XML data task with a clear tag hierarchy.</li>
+            <li>Connected a working contact form with validation and spam protection.</li>
+          </ul>
+        </aside>
+      </div>
     </section>
 
     <section id="contact" class="contact rv">
@@ -143,6 +192,11 @@
 
   <footer>
     <span>&copy; <span id="yr">2026</span> Joshua Dimasaca</span>
+    <nav class="foot-links" aria-label="Public links">
+      <a href="https://joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./">Live site</a>
+      <a href="https://github.com/joshuadimasaca098-cyber/My_Personal_Portfolio.">GitHub repository</a>
+      <a href="mailto:joshuadimasaca098@gmail.com">Email</a>
+    </nav>
     <span>Built with HTML, CSS and JavaScript</span>
   </footer>
 </div>

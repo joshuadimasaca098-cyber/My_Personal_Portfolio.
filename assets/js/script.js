@@ -3,6 +3,32 @@
   var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   document.getElementById('yr').textContent = new Date().getFullYear();
 
+  // mobile navigation menu (the button only appears on narrow screens)
+  var navToggle = document.getElementById('nav-toggle');
+  var menu = document.getElementById('site-menu');
+  if (navToggle && menu) {
+    var wide = window.matchMedia('(min-width: 901px)');
+    function setMenu(open) {
+      menu.classList.toggle('open', open);
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
+    navToggle.addEventListener('click', function () { setMenu(!menu.classList.contains('open')); });
+    menu.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('a')) setMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menu.classList.contains('open')) { setMenu(false); navToggle.focus(); }
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.classList.contains('open')) return;
+      if (menu.contains(e.target) || navToggle.contains(e.target)) return;
+      setMenu(false);
+    });
+    if (wide.addEventListener) wide.addEventListener('change', function () { if (wide.matches) setMenu(false); });
+    setMenu(false);
+  }
+
   // theme toggle (remembered per browser when storage is available)
   var root = document.documentElement;
   try { var saved = localStorage.getItem('jd-theme-v2'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}

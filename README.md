@@ -14,6 +14,18 @@ GitHub Pages.
 | **Project 1** | [joshuadimasaca098-cyber.github.io/joshua/](https://joshuadimasaca098-cyber.github.io/joshua/) |
 | **Contact** | [joshuadimasaca098@gmail.com](mailto:joshuadimasaca098@gmail.com) |
 
+## Sections
+
+| Section | Anchor | What is there |
+| --- | --- | --- |
+| Home / Introduction | `#top` | Name, role line, short intro, portrait and call-to-action buttons |
+| About me | `#about` | Short bio plus a "right now" facts panel |
+| Skills | `#skills` | Tools I use and the ones I am learning next |
+| Projects | `#work` | Three project cards (two link to live pages or source) |
+| Education & achievements | `#education` | Timeline of study and a list of achievements |
+| Contact | `#contact` | Email, GitHub, phone, live site and a working message form |
+| Footer | — | Copyright, links to the live site, the repository and email |
+
 ## Features
 
 - Summer (sunny) and storm (rainy) themes, switched with a button and remembered
@@ -23,6 +35,11 @@ GitHub Pages.
 - Rain, thunder, ocean waves and bird sounds generated with the Web Audio API
   (no audio files), with a sound on/off toggle.
 - Contact form that sends a real email without leaving the page.
+- Responsive layout with a mobile navigation menu below 900px: an accessible
+  toggle (`aria-expanded`, `aria-controls`), closes on link click, outside click
+  or <kbd>Esc</kbd>, and refocuses the button.
+- Accessibility: skip link to the main content, semantic landmarks, visible focus
+  rings, labelled form fields, live status messages and a 44px menu target.
 - Respects `prefers-reduced-motion` and pauses animations that are off screen.
 
 ## Tech
@@ -36,10 +53,10 @@ GitHub Pages.
 ## Structure
 
 ```
-index.html                  # the whole page
+index.html                  # the whole page: all seven sections
 assets/
-  css/style.css             # layout, both themes and animations
-  js/script.js              # theme, canvas, sound, effects and contact form
+  css/style.css             # layout, both themes, mobile menu and animations
+  js/script.js              # mobile menu, theme, canvas, sound, form
   images/portrait.jpg       # portrait used in the hero
 README.md
 LICENSE                     # The Unlicense
