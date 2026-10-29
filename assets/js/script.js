@@ -35,7 +35,11 @@
   var themeBtn = document.getElementById('theme');
   var lightMQ = window.matchMedia('(prefers-color-scheme: light)');
   function isSummer() { var t = root.getAttribute('data-theme'); return t ? t === 'light' : lightMQ.matches; }
-  function themeLabel() { themeBtn.textContent = 'theme: ' + (isSummer() ? 'summer' : 'storm'); }
+  function themeLabel() {
+    var msg = isSummer() ? 'Switch to storm theme' : 'Switch to summer theme';
+    themeBtn.setAttribute('aria-label', msg);
+    themeBtn.setAttribute('title', msg);
+  }
   var metaTheme = document.querySelector('meta[name="theme-color"]');
   function syncTheme() {
     var s = isSummer();
@@ -49,9 +53,19 @@
       try { localStorage.setItem('jd-theme-v2', next); } catch (e) {}
       syncTheme();
     }
-    if (reduce) { apply(); return; }
+    if (reduce || document.visibilityState !== 'visible') { apply(); return; }
     // best case: the browser crossfades snapshots on the compositor
-    if (document.startViewTransition) { document.startViewTransition(apply); return; }
+    if (document.startViewTransition) {
+      var applied = false;
+      function applyOnce() { if (applied) return; applied = true; apply(); }
+      var vt = document.startViewTransition(applyOnce);
+      if (vt) {
+        ['ready', 'updateCallbackDone', 'finished'].forEach(function (key) {
+          if (vt[key] && vt[key].catch) vt[key].catch(applyOnce);
+        });
+      }
+      return;
+    }
     // fallback: fade a veil that wears the old sky away
     var aur = document.querySelector('.aurora'), veil = document.createElement('div');
     veil.className = 'veil';
@@ -211,7 +225,12 @@
     try { if (localStorage.getItem('jd-sound') === 'off') enabled = false; } catch (e) {}
     var ac = null, master, rainG, auroraG, chimeBus, noiseBuf, lastCrackle = 0;
     function isStorm() { return !isSummer(); }
-    function label() { btn.textContent = 'sound: ' + (enabled ? 'on' : 'off'); btn.setAttribute('aria-pressed', enabled ? 'true' : 'false'); }
+    function label() {
+      btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      var msg = enabled ? 'Mute background sound' : 'Unmute background sound';
+      btn.setAttribute('aria-label', msg);
+      btn.setAttribute('title', msg);
+    }
     function noiseSrc() { var n = ac.createBufferSource(); n.buffer = noiseBuf; n.loop = true; return n; }
     function build() {
       ac = new AC();

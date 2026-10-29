@@ -11,7 +11,7 @@ GitHub Pages.
 | --- | --- |
 | **Live site** | [joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./](https://joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./) |
 | **Repository** | [github.com/joshuadimasaca098-cyber/My_Personal_Portfolio.](https://github.com/joshuadimasaca098-cyber/My_Personal_Portfolio.) |
-| **Project 1** | [joshuadimasaca098-cyber.github.io/joshua/](https://joshuadimasaca098-cyber.github.io/joshua/) |
+| **Project 1** | [joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./projects/live-message-preview.html](https://joshuadimasaca098-cyber.github.io/My_Personal_Portfolio./projects/live-message-preview.html) |
 | **Contact** | [joshuadimasaca098@gmail.com](mailto:joshuadimasaca098@gmail.com) |
 
 ## Sections
@@ -58,6 +58,8 @@ assets/
   css/style.css             # layout, both themes, mobile menu and animations
   js/script.js              # mobile menu, theme, canvas, sound, form
   images/portrait.jpg       # portrait used in the hero
+projects/
+  live-message-preview.html # Project 1: live message preview demo
 README.md
 LICENSE                     # The Unlicense
 ```

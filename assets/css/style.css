@@ -129,6 +129,102 @@ nav a:hover { color: var(--fg); }
 .toggle:hover { border-color: var(--accent); }
 .nav-tools { display: flex; align-items: center; gap: 10px; }
 
+/* icon-only sound and theme buttons */
+.icon-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 0;
+}
+.icon { display: none; width: 20px; height: 20px; }
+.icon-sun, .icon-storm, .icon-sound-on, .icon-sound-off {
+  width: 38px; height: 38px; transform-origin: center;
+  animation: icon-sway 9s ease-in-out infinite;
+  transition: filter 0.2s ease;
+}
+.icon-toggle:hover .icon-sun, .icon-toggle:hover .icon-storm,
+.icon-toggle:hover .icon-sound-on, .icon-toggle:hover .icon-sound-off { filter: brightness(1.15); }
+.icon-storm, .icon-sound-on { display: block; }
+.theme-summer .icon-sun, :root[data-theme="light"] .icon-sun { display: block; }
+.theme-summer .icon-storm, :root[data-theme="light"] .icon-storm { display: none; }
+#sound[aria-pressed="false"] .icon-sound-on { display: none; }
+#sound[aria-pressed="false"] .icon-sound-off { display: block; }
+
+/* 3D-style theme icons: the sun churns, the storm rolls and flashes */
+.sun-rays { transform-origin: 24px 24px; animation: sun-spin 30s linear infinite; }
+.sun-surface { transform-origin: 24px 24px; animation: sun-churn 16s ease-in-out infinite alternate; }
+.sun-halo { transform-origin: 24px 24px; animation: sun-pulse 4.5s ease-in-out infinite; }
+.sun-flare { animation: sun-flare 6s ease-in-out infinite; }
+.storm-glow { transform-origin: 24px 32px; animation: storm-pulse 3.5s ease-in-out infinite; }
+.storm-cloud { transform-origin: 24px 24px; animation: cloud-drift 6s ease-in-out infinite; }
+.bolt { filter: drop-shadow(0 0 3px #7dd3ff); }
+.bolt-a { animation: bolt-flash 5s linear infinite; }
+.bolt-b { animation: bolt-flash 6.5s linear infinite 1.2s; }
+.rain line { animation: rain-drop 1.1s linear infinite; }
+.rain line:nth-child(2) { animation-delay: 0.25s; }
+.rain line:nth-child(3) { animation-delay: 0.55s; }
+.rain line:nth-child(4) { animation-delay: 0.8s; }
+
+/* 3D sound icons: metallic speaker, blue waves travel outward */
+.sound-speaker {
+  transform-box: view-box; transform-origin: 20px 24px;
+  animation: sound-bob 5s ease-in-out infinite;
+}
+.sound-wave {
+  transform-box: view-box; transform-origin: 29px 24px;
+  animation: sound-wave 2.4s ease-in-out infinite;
+}
+.wave-1 { animation-delay: 0s; }
+.wave-2 { animation-delay: 0.3s; }
+.wave-3 { animation-delay: 0.6s; }
+.sound-mute-x {
+  transform-box: view-box; transform-origin: 37.5px 24px;
+  animation: mute-pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes sun-spin { to { transform: rotate(360deg); } }
+@keyframes icon-sway {
+  0%, 100% { transform: perspective(120px) rotateY(-10deg) rotateX(4deg); }
+  50% { transform: perspective(120px) rotateY(10deg) rotateX(-3deg); }
+}
+@keyframes sun-churn {
+  from { transform: rotate(-5deg) scale(1); }
+  to { transform: rotate(7deg) scale(1.06); }
+}
+@keyframes sun-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes sun-flare { 50% { opacity: 0.5; } }
+@keyframes storm-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes cloud-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.3px); }
+}
+@keyframes bolt-flash {
+  0%, 6%, 8%, 46%, 49%, 100% { opacity: 1; }
+  7%, 47% { opacity: 0.15; }
+}
+@keyframes rain-drop {
+  0% { transform: translateY(-1.5px); opacity: 0; }
+  20% { opacity: 0.95; }
+  100% { transform: translateY(4.5px); opacity: 0; }
+}
+@keyframes sound-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-0.5px) rotate(-1deg); }
+}
+@keyframes sound-wave {
+  0%, 100% { opacity: 0.4; transform: scale(0.94); }
+  45% { opacity: 1; transform: scale(1.06); }
+  70% { opacity: 0.75; transform: scale(1.02); }
+}
+@keyframes mute-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
 /* mobile menu button: hidden unless JavaScript is on and the screen is narrow */
 .nav-toggle {
   display: none; align-items: center; justify-content: center;
@@ -161,7 +257,6 @@ nav a:hover { color: var(--fg); }
   #site-menu a { padding: 13px 2px; font-size: 17px; border-bottom: 1px solid var(--line); }
   #site-menu a:last-of-type { border-bottom: 0; }
   .nav-tools { padding-top: 14px; gap: 12px; }
-  .nav-tools .toggle { padding: 9px 15px; }
 }
 @keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
 
@@ -300,6 +395,10 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 32px; font-famil
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .blob, .track, .caret, .portrait, .frame::before { animation: none; }
+  .sun-rays, .sun-surface, .sun-halo, .sun-flare,
+  .storm-glow, .storm-cloud, .bolt, .rain line,
+  .sound-speaker, .sound-wave, .sound-mute-x { animation: none; }
+  .icon-sun, .icon-storm, .icon-sound-on, .icon-sound-off { animation: none; }
   .pre { opacity: 1; transform: none; }
   .reveal, .card, .btn, .chips li { transition: none; }
   .bars span { transition: none; }

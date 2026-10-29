@@ -40,8 +40,179 @@
       <a href="#education">Education</a>
       <a href="#contact">Contact</a>
       <span class="nav-tools">
-        <button class="toggle" id="sound" type="button" aria-pressed="true" aria-label="Turn sound on or off">sound: on</button>
-        <button class="toggle" id="theme" type="button" aria-label="Switch light or dark theme">theme</button>
+        <button class="toggle icon-toggle" id="sound" type="button" aria-pressed="true" aria-label="Mute background sound" title="Mute background sound">
+          <svg class="icon icon-sound-on" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="sound-metal" x1="10" y1="12" x2="27" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#fbfdff"/>
+                <stop offset=".22" stop-color="#dfe5ee"/>
+                <stop offset=".5" stop-color="#9aa5b7"/>
+                <stop offset=".75" stop-color="#5d6779"/>
+                <stop offset="1" stop-color="#303846"/>
+              </linearGradient>
+              <linearGradient id="sound-metal-face" x1="23" y1="12" x2="29" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#ffffff"/>
+                <stop offset=".4" stop-color="#c3cbd8"/>
+                <stop offset="1" stop-color="#6b7588"/>
+              </linearGradient>
+              <linearGradient id="sound-blue" x1="30" y1="18" x2="40" y2="30" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#0b5cff"/>
+                <stop offset=".55" stop-color="#2f9cff"/>
+                <stop offset="1" stop-color="#a6e6ff"/>
+              </linearGradient>
+              <linearGradient id="sound-blue-far" x1="34" y1="12" x2="45" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#0a49d6"/>
+                <stop offset=".55" stop-color="#1e86ff"/>
+                <stop offset="1" stop-color="#7dd2ff"/>
+              </linearGradient>
+              <filter id="sound-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="1" stdDeviation=".9" flood-color="#02060d" flood-opacity=".55"/>
+              </filter>
+            </defs>
+            <g class="sound-speaker" filter="url(#sound-shadow)">
+              <path d="M8 19.6c0-1.2 1-2.2 2.2-2.2h3.2v13.2h-3.2A2.2 2.2 0 0 1 8 28.4v-8.8Z" fill="url(#sound-metal)"/>
+              <path d="M13.7 22.1 20 14a2.2 2.2 0 0 1 3.9 1.4v17.2A2.2 2.2 0 0 1 20 34l-6.3-8.1a2.5 2.5 0 0 1 0-3.8Z" fill="url(#sound-metal)"/>
+              <rect x="22.9" y="11.6" width="5.5" height="24.8" rx="2.7" fill="url(#sound-metal-face)"/>
+              <rect x="24.1" y="13.4" width="1.1" height="21.2" rx=".5" fill="#fff" opacity=".6"/>
+            </g>
+            <g fill="none" stroke-linecap="round">
+              <path class="sound-wave wave-1" d="M31 19.1a7.3 7.3 0 0 1 0 9.8" stroke="url(#sound-blue)" stroke-width="2.7"/>
+              <path class="sound-wave wave-2" d="M34.7 15.4a12.4 12.4 0 0 1 0 17.2" stroke="url(#sound-blue-far)" stroke-width="2.5"/>
+              <path class="sound-wave wave-3" d="M38.4 11.7a17.5 17.5 0 0 1 0 24.6" stroke="url(#sound-blue)" stroke-width="2.4"/>
+            </g>
+          </svg>
+          <svg class="icon icon-sound-off" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="sound-off-metal" x1="10" y1="12" x2="27" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#eef2f8"/>
+                <stop offset=".24" stop-color="#cfd6e1"/>
+                <stop offset=".52" stop-color="#8b95a7"/>
+                <stop offset=".78" stop-color="#525c6e"/>
+                <stop offset="1" stop-color="#2a313d"/>
+              </linearGradient>
+              <linearGradient id="sound-off-face" x1="23" y1="12" x2="29" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#f6f9ff"/>
+                <stop offset=".45" stop-color="#b3bdcb"/>
+                <stop offset="1" stop-color="#5f697b"/>
+              </linearGradient>
+              <linearGradient id="sound-mute-x" x1="31" y1="18" x2="42" y2="30" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#9cc9ff"/>
+                <stop offset=".5" stop-color="#5a8fe0"/>
+                <stop offset="1" stop-color="#355a9c"/>
+              </linearGradient>
+              <filter id="sound-off-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="1" stdDeviation=".9" flood-color="#02060d" flood-opacity=".55"/>
+              </filter>
+            </defs>
+            <g class="sound-speaker" filter="url(#sound-off-shadow)">
+              <path d="M8 19.6c0-1.2 1-2.2 2.2-2.2h3.2v13.2h-3.2A2.2 2.2 0 0 1 8 28.4v-8.8Z" fill="url(#sound-off-metal)"/>
+              <path d="M13.7 22.1 20 14a2.2 2.2 0 0 1 3.9 1.4v17.2A2.2 2.2 0 0 1 20 34l-6.3-8.1a2.5 2.5 0 0 1 0-3.8Z" fill="url(#sound-off-metal)"/>
+              <rect x="22.9" y="11.6" width="5.5" height="24.8" rx="2.7" fill="url(#sound-off-face)"/>
+              <rect x="24.1" y="13.4" width="1.1" height="21.2" rx=".5" fill="#fff" opacity=".5"/>
+            </g>
+            <g class="sound-mute-x" stroke="url(#sound-mute-x)" stroke-width="3" stroke-linecap="round">
+              <path d="m32.8 18.6 9.4 10.8"/>
+              <path d="m42.2 18.6-9.4 10.8"/>
+            </g>
+          </svg>
+        </button>
+        <button class="toggle icon-toggle" id="theme" type="button" aria-label="Switch theme" title="Switch theme">
+          <svg class="icon icon-sun" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <defs>
+              <radialGradient id="sun-body" cx="35%" cy="28%" r="78%">
+                <stop offset="0" stop-color="#fffbd6"/>
+                <stop offset=".18" stop-color="#ffe66d"/>
+                <stop offset=".48" stop-color="#ffab00"/>
+                <stop offset=".78" stop-color="#f05a00"/>
+                <stop offset="1" stop-color="#a81f00"/>
+              </radialGradient>
+              <radialGradient id="sun-halo-grad" cx="50%" cy="50%" r="50%">
+                <stop offset=".42" stop-color="#ff9d00" stop-opacity=".6"/>
+                <stop offset="1" stop-color="#ff6a00" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="sun-hot" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#fffde7" stop-opacity=".95"/>
+                <stop offset="1" stop-color="#fffde7" stop-opacity="0"/>
+              </radialGradient>
+              <pattern id="sun-granules" width="5" height="5" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1.5" r=".8" fill="#9c2500" opacity=".35"/>
+                <circle cx="3.6" cy="4" r=".6" fill="#fff1a0" opacity=".3"/>
+              </pattern>
+              <filter id="sun-soft" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation=".9"/>
+              </filter>
+              <clipPath id="sun-clip"><circle cx="24" cy="24" r="14"/></clipPath>
+            </defs>
+            <circle class="sun-halo" cx="24" cy="24" r="22" fill="url(#sun-halo-grad)"/>
+            <g class="sun-rays" stroke="#ffb300" stroke-width="2.2" stroke-linecap="round" opacity=".85">
+              <path d="M24 2.7v3.6"/>
+              <path d="M24 2.7v3.6" transform="rotate(30 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(60 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(90 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(120 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(150 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(180 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(210 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(240 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(270 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(300 24 24)"/>
+              <path d="M24 2.7v3.6" transform="rotate(330 24 24)"/>
+            </g>
+            <g clip-path="url(#sun-clip)">
+              <circle cx="24" cy="24" r="14" fill="url(#sun-body)"/>
+              <circle cx="24" cy="24" r="14" fill="url(#sun-granules)"/>
+              <ellipse cx="19" cy="17" rx="9" ry="7" fill="url(#sun-hot)"/>
+              <g class="sun-surface" fill="none" stroke-linecap="round">
+                <path d="M12 18c2-2 5-3 8-2" stroke="#fff2a0" stroke-width="1" opacity=".55"/>
+                <path d="M27 14c2 1 3 3 3 5" stroke="#ffdf6b" stroke-width=".8" opacity=".45"/>
+                <path d="M20 27c1.5 1 3 1.2 4.5 1" stroke="#ffe36e" stroke-width=".8" opacity=".35"/>
+              </g>
+              <ellipse cx="32.5" cy="18" rx="2.2" ry="1.4" fill="#7c1a00" opacity=".45" filter="url(#sun-soft)"/>
+              <ellipse cx="32" cy="31" rx="1.8" ry="1.2" fill="#7c1a00" opacity=".35" filter="url(#sun-soft)"/>
+            </g>
+            <circle cx="24" cy="24" r="14" fill="none" stroke="#ffdf7a" stroke-width=".7" opacity=".5"/>
+            <ellipse class="sun-flare" cx="18.5" cy="16" rx="4.5" ry="2.6" fill="#fffbe0" opacity=".45" filter="url(#sun-soft)" transform="rotate(-28 18.5 16)"/>
+          </svg>
+          <svg class="icon icon-storm" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="cloud-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffffff"/>
+                <stop offset=".32" stop-color="#e3ebf7"/>
+                <stop offset=".68" stop-color="#93a3bb"/>
+                <stop offset="1" stop-color="#48566d"/>
+              </linearGradient>
+              <radialGradient id="storm-glow-grad" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#8fd8ff" stop-opacity=".7"/>
+                <stop offset="1" stop-color="#3d8bff" stop-opacity="0"/>
+              </radialGradient>
+              <filter id="cloud-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                <feDropShadow dx="0" dy="2" stdDeviation="1.4" flood-color="#07101f" flood-opacity=".55"/>
+              </filter>
+              <filter id="storm-blur" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="1.1"/>
+              </filter>
+            </defs>
+            <ellipse class="storm-glow" cx="24" cy="32" rx="16" ry="12" fill="url(#storm-glow-grad)"/>
+            <g class="storm-cloud" filter="url(#cloud-shadow)">
+              <path d="M12 30c-4 0-6.5-2.5-6.5-6 0-3.3 2.4-5.8 5.6-6 .7-4.3 4.4-7.5 8.8-7.5 3.3 0 6.2 1.8 7.8 4.5 1.3-1.3 3.1-2.1 5.1-2.1 4 0 7.2 3.2 7.2 7.2 2.8.3 5 2.7 5 5.6 0 3.1-2.5 5.6-5.6 5.6H12Z" fill="url(#cloud-grad)"/>
+              <ellipse cx="24" cy="28.5" rx="15.5" ry="3" fill="#263143" opacity=".4" filter="url(#storm-blur)"/>
+              <ellipse cx="17" cy="16" rx="4.2" ry="2.6" fill="#fff" opacity=".35" filter="url(#storm-blur)"/>
+              <ellipse cx="30" cy="14" rx="3.6" ry="2.2" fill="#fff" opacity=".22" filter="url(#storm-blur)"/>
+            </g>
+            <g class="rain" stroke="#9bc9ff" stroke-width="1.5" stroke-linecap="round">
+              <line x1="12.5" y1="33" x2="11.5" y2="38"/>
+              <line x1="19.5" y1="34" x2="18.5" y2="40"/>
+              <line x1="30.5" y1="34" x2="29.5" y2="40"/>
+              <line x1="37.5" y1="33" x2="36.5" y2="38"/>
+            </g>
+            <g class="bolt bolt-a" fill="#fff8c9" stroke="#bfe9ff" stroke-width=".8" stroke-linejoin="round">
+              <path d="M25 28.5l-5.5 8h3.6l-3.1 7.5 8.4-9.2h-4l3.3-6.3z"/>
+            </g>
+            <g class="bolt bolt-b" fill="#dff4ff" stroke="#9fdcff" stroke-width=".7" stroke-linejoin="round" opacity=".7">
+              <path d="M15 30l-3.5 5.5h2.3L11 41l5.5-6.2h-2.6l2.2-4.8z"/>
+            </g>
+          </svg>
+        </button>
       </span>
     </nav>
   </header>
@@ -108,12 +279,12 @@
       <h2>Projects</h2>
       <p class="section-note">Three builds that show what I have learned so far. Two are live on GitHub Pages.</p>
       <div class="cards">
-        <a class="card tilt" href="https://joshuadimasaca098-cyber.github.io/joshua/" target="_blank" rel="noopener">
+        <a class="card tilt" href="projects/live-message-preview.html">
           <span class="when">Project 1</span>
           <h3>Live Message Preview</h3>
-          <p>A page that shows your message as you type it, with buttons that show and hide sections and functions that create new elements.</p>
-          <ul class="tags"><li>JavaScript</li><li>DOM</li><li>GitHub Pages</li></ul>
-          <span class="go">Open the page &rarr;</span>
+          <p>A message box that shows your text as you type, counts the characters, and switches between light and dark themes.</p>
+          <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li></ul>
+          <span class="go">Open Project 1 &rarr;</span>
         </a>
         <div class="card tilt">
           <span class="when">Project 2</span>
@@ -136,14 +307,14 @@
       <div class="edu">
         <ol class="timeline">
           <li>
-            <span class="when">In progress</span>
+            <span class="when">ICCT Colleges</span>
             <h3>BS Information Technology</h3>
             <p>2nd year college student. Coursework in programming, web systems and databases, with a focus on building pages for the web.</p>
           </li>
           <li>
-            <span class="when">Completed</span>
-            <h3>Senior High School</h3>
-            <p>Built the foundation in computer basics and early programming before moving on to college.</p>
+            <span class="when">CASAP Rodriguez Campus</span>
+            <h3>Senior High School &middot; STEM</h3>
+            <p>Graduated from the STEM (Science, Technology, Engineering and Mathematics) strand. That science-focused background gave me a solid foundation in computer basics and early programming before college.</p>
           </li>
           <li>
             <span class="when">Ongoing</span>
